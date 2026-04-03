@@ -1,4 +1,4 @@
-import { put, list, getDownloadUrl } from '@vercel/blob';
+import { put, list } from '@vercel/blob';
 
 const BLOB_PATH = 'shift-calendar-data.json';
 
@@ -12,9 +12,8 @@ export default async function handler(req, res) {
     try {
       const { blobs } = await list({ prefix: BLOB_PATH });
       if (blobs.length === 0) return res.status(200).json({ instructors: [] });
-      const blob = blobs[0];
-      const url = getDownloadUrl(blob.url);
-      const r = await fetch(url);
+      // Publicストアはblobのurlに直接アクセスできる
+      const r = await fetch(blobs[0].url);
       const data = await r.json();
       return res.status(200).json(data);
     } catch (e) {
@@ -27,7 +26,7 @@ export default async function handler(req, res) {
     try {
       const body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
       await put(BLOB_PATH, body, {
-        access: 'private',
+        access: 'public',
         contentType: 'application/json',
         addRandomSuffix: false,
         allowOverwrite: true,
