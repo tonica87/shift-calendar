@@ -49,6 +49,7 @@ export default async function handler(req, res) {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
             'x-api-version': '7',
+              'x-access': 'private',
             'x-add-random-suffix': '0',
             'x-cache-control-max-age': '0',
           },
