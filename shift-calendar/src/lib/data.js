@@ -60,3 +60,13 @@ export async function saveData(data) {
     console.error('Save failed:', e);
   }
 }
+
+// 30分スロット数 → "○時間○分" 表記
+export function slotsToTime(count) {
+  const totalMin = count * 30;
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h === 0) return `${m}分`;
+  if (m === 0) return `${h}時間`;
+  return `${h}時間${m}分`;
+}
