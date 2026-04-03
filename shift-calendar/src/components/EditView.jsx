@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { DAYS, DAY_KEYS, TIME_SLOTS, slotKey, slotsToTime } from '../lib/data.js';
+import { DAYS, DAY_KEYS, TIME_SLOTS, slotKey, slotsToTime, SUBJECTS } from '../lib/data.js';
 
 function getSlotMode(available, teaching, dayKey, time) {
   const k = slotKey(dayKey, time);
@@ -18,12 +18,18 @@ const MODE_STYLE = {
 export default function EditView({ instructor, onUpdate, onDone }) {
   const [available, setAvailable] = useState(() => ({ ...(instructor.available || {}) }));
   const [teaching,  setTeaching]  = useState(() => ({ ...(instructor.teaching  || {}) }));
+  const [subjects,  setSubjects]  = useState(() => instructor.subjects || []);
   const [saved, setSaved] = useState(false);
   const [selecting, setSelecting] = useState(null);
   const [popup, setPopup] = useState(null);
 
   const dragging  = useRef(false);
   const dragStart = useRef(null);
+
+  function toggleSubject(s) {
+    setSubjects(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
+    setSaved(false);
+  }
 
   function calcRange(a, b) {
     if (!a || !b) return null;
@@ -61,8 +67,6 @@ export default function EditView({ instructor, onUpdate, onDone }) {
         keys.push(slotKey(DAY_KEYS[di], TIME_SLOTS[ti]));
       }
     }
-
-    // 単一・複数セルともポップアップ
     setPopup({ x: e.clientX, y: e.clientY, keys });
   }
 
@@ -78,7 +82,7 @@ export default function EditView({ instructor, onUpdate, onDone }) {
   function cancelPopup() { setPopup(null); setSelecting(null); }
 
   function handleSave() {
-    onUpdate({ available, teaching });
+    onUpdate({ available, teaching, subjects });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
@@ -95,11 +99,13 @@ export default function EditView({ instructor, onUpdate, onDone }) {
   return (
     <div style={{ userSelect: 'none' }} onMouseLeave={() => { if (dragging.current) { dragging.current = false; setSelecting(null); } }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12, position: 'sticky', top: 56, zIndex: 90, background: 'var(--bg)', paddingTop: 16, paddingBottom: 16, marginTop: -16 }}>
         <div>
           <button onClick={onDone} style={{ background: 'none', color: 'var(--text-dim)', fontSize: 12, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>← 一覧に戻る</button>
           <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.03em' }}>{instructor.name}</h1>
-          <div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>希望: {slotsToTime(availCount)}　　指導中: {slotsToTime(teachCount)}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>
+            希望: {slotsToTime(availCount)}　　指導中: {slotsToTime(teachCount)}
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: 16, marginRight: 8 }}>
@@ -117,9 +123,45 @@ export default function EditView({ instructor, onUpdate, onDone }) {
         </div>
       </div>
 
-      {/* 説明 */}
+      {/* 担当科目 */}
+      <div style={{
+        background: 'var(--bg-card)', border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-sm)', padding: '14px 16px', marginBottom: 16,
+      }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', marginBottom: 10 }}>
+          担当可能科目
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {SUBJECTS.map(s => {
+            const selected = subjects.includes(s);
+            return (
+              <button
+                key={s}
+                onClick={() => toggleSubject(s)}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: 20,
+                  fontSize: 12, fontWeight: selected ? 600 : 400,
+                  background: selected ? 'var(--accent-dim)' : 'transparent',
+                  color: selected ? 'var(--accent)' : 'var(--text-faint)',
+                  border: `1px solid ${selected ? 'rgba(91,141,238,0.5)' : 'var(--border)'}`,
+                  cursor: 'pointer',
+                  transition: 'all 0.1s',
+                }}
+              >
+                {selected ? '✓ ' : ''}{s}
+              </button>
+            );
+          })}
+        </div>
+        {subjects.length === 0 && (
+          <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 8 }}>科目をクリックして選択してください</div>
+        )}
+      </div>
+
+      {/* 操作説明 */}
       <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '10px 16px', marginBottom: 20, fontSize: 12, color: 'var(--text-dim)' }}>
-        💡 <strong>ドラッグ</strong>で時間帯を選択 → 希望 / 指導中 を選択して登録。単セルクリックでトグル切り替え。
+        💡 <strong>ドラッグ</strong>で時間帯を選択 → 希望 / 指導中 を選択して登録。単セルクリックでもポップアップが出ます。
       </div>
 
       {/* グリッド */}
