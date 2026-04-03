@@ -62,19 +62,7 @@ export default function EditView({ instructor, onUpdate, onDone }) {
       }
     }
 
-    // 単一セルはトグル
-    if (keys.length === 1) {
-      const k = keys[0];
-      const cur = teaching[k] ? 'teaching' : available[k] ? 'available' : 'none';
-      const next = cur === 'none' ? 'available' : cur === 'available' ? 'teaching' : 'none';
-      setAvailable(a => ({ ...a, [k]: next === 'available' }));
-      setTeaching(t2 => ({ ...t2, [k]: next === 'teaching' }));
-      setSelecting(null);
-      setSaved(false);
-      return;
-    }
-
-    // 複数セル → ポップアップ
+    // 単一・複数セルともポップアップ
     setPopup({ x: e.clientX, y: e.clientY, keys });
   }
 
