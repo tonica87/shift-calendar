@@ -1,11 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { DAYS, DAY_KEYS, TIME_SLOTS, slotKey } from '../lib/data.js';
-
-const MODE = {
-  none: { label: '―', bg: 'transparent', color: 'var(--text-faint)', border: 'var(--border)' },
-  available: { label: '○', bg: 'var(--accent-dim)', color: 'var(--accent)', border: 'rgba(91,141,238,0.4)' },
-  teaching: { label: '●', bg: 'var(--success-dim)', color: 'var(--success)', border: 'rgba(76,175,125,0.4)' },
-};
 
 function getSlotMode(available, teaching, dayKey, time) {
   const k = slotKey(dayKey, time);
@@ -14,26 +8,86 @@ function getSlotMode(available, teaching, dayKey, time) {
   return 'none';
 }
 
-function nextMode(current) {
-  if (current === 'none') return 'available';
-  if (current === 'available') return 'teaching';
-  return 'none';
-}
+const MODE_STYLE = {
+  none:      { bg: 'transparent',           color: 'var(--text-faint)', border: 'transparent' },
+  available: { bg: 'var(--accent-dim)',     color: 'var(--accent)',     border: 'rgba(91,141,238,0.4)' },
+  teaching:  { bg: 'var(--success-dim)',    color: 'var(--success)',    border: 'rgba(76,175,125,0.4)' },
+  selecting: { bg: 'rgba(255,200,50,0.18)', color: '#e8c34a',           border: 'rgba(232,195,74,0.5)' },
+};
 
 export default function EditView({ instructor, onUpdate, onDone }) {
   const [available, setAvailable] = useState(() => ({ ...(instructor.available || {}) }));
-  const [teaching, setTeaching] = useState(() => ({ ...(instructor.teaching || {}) }));
+  const [teaching,  setTeaching]  = useState(() => ({ ...(instructor.teaching  || {}) }));
   const [saved, setSaved] = useState(false);
+  const [selecting, setSelecting] = useState(null);
+  const [popup, setPopup] = useState(null);
 
-  function toggleSlot(dayKey, time) {
-    const k = slotKey(dayKey, time);
-    const current = getSlotMode(available, teaching, dayKey, time);
-    const next = nextMode(current);
+  const dragging  = useRef(false);
+  const dragStart = useRef(null);
 
-    setAvailable(a => ({ ...a, [k]: next === 'available' }));
-    setTeaching(t => ({ ...t, [k]: next === 'teaching' }));
+  function calcRange(a, b) {
+    if (!a || !b) return null;
+    return {
+      minD: Math.min(a.d, b.d), maxD: Math.max(a.d, b.d),
+      minT: Math.min(a.t, b.t), maxT: Math.max(a.t, b.t),
+    };
+  }
+
+  function isInRange(range, d, t) {
+    if (!range) return false;
+    return d >= range.minD && d <= range.maxD && t >= range.minT && t <= range.maxT;
+  }
+
+  function handleMouseDown(d, t) {
+    dragging.current = true;
+    dragStart.current = { d, t };
+    setSelecting({ minD: d, maxD: d, minT: t, maxT: t });
+  }
+
+  function handleMouseEnter(d, t) {
+    if (!dragging.current) return;
+    setSelecting(calcRange(dragStart.current, { d, t }));
+  }
+
+  function handleMouseUp(e, d, t) {
+    if (!dragging.current) return;
+    dragging.current = false;
+    const range = calcRange(dragStart.current, { d, t });
+    if (!range) { setSelecting(null); return; }
+
+    const keys = [];
+    for (let di = range.minD; di <= range.maxD; di++) {
+      for (let ti = range.minT; ti <= range.maxT; ti++) {
+        keys.push(slotKey(DAY_KEYS[di], TIME_SLOTS[ti]));
+      }
+    }
+
+    // 単一セルはトグル
+    if (keys.length === 1) {
+      const k = keys[0];
+      const cur = teaching[k] ? 'teaching' : available[k] ? 'available' : 'none';
+      const next = cur === 'none' ? 'available' : cur === 'available' ? 'teaching' : 'none';
+      setAvailable(a => ({ ...a, [k]: next === 'available' }));
+      setTeaching(t2 => ({ ...t2, [k]: next === 'teaching' }));
+      setSelecting(null);
+      setSaved(false);
+      return;
+    }
+
+    // 複数セル → ポップアップ
+    setPopup({ x: e.clientX, y: e.clientY, keys });
+  }
+
+  function applyPopup(mode) {
+    if (!popup) return;
+    setAvailable(a => { const n = {...a}; popup.keys.forEach(k => { n[k] = mode === 'available'; }); return n; });
+    setTeaching(t2 => { const n = {...t2}; popup.keys.forEach(k => { n[k] = mode === 'teaching'; }); return n; });
+    setPopup(null);
+    setSelecting(null);
     setSaved(false);
   }
+
+  function cancelPopup() { setPopup(null); setSelecting(null); }
 
   function handleSave() {
     onUpdate({ available, teaching });
@@ -42,99 +96,42 @@ export default function EditView({ instructor, onUpdate, onDone }) {
   }
 
   function clearAll() {
-    const emptyA = {};
-    const emptyT = {};
-    TIME_SLOTS.forEach(t => DAY_KEYS.forEach(d => {
-      emptyA[slotKey(d, t)] = false;
-      emptyT[slotKey(d, t)] = false;
-    }));
-    setAvailable(emptyA);
-    setTeaching(emptyT);
-    setSaved(false);
+    const empty = {};
+    TIME_SLOTS.forEach(t => DAY_KEYS.forEach(d => { empty[slotKey(d, t)] = false; }));
+    setAvailable({...empty}); setTeaching({...empty}); setSaved(false);
   }
 
   const availCount = Object.values(available).filter(Boolean).length;
   const teachCount = Object.values(teaching).filter(Boolean).length;
 
   return (
-    <div>
+    <div style={{ userSelect: 'none' }} onMouseLeave={() => { if (dragging.current) { dragging.current = false; setSelecting(null); } }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <button
-            onClick={onDone}
-            style={{
-              background: 'none', color: 'var(--text-dim)', fontSize: 12,
-              marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4,
-            }}
-          >
-            ← 一覧に戻る
-          </button>
-          <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.03em' }}>
-            {instructor.name}
-          </h1>
-          <div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>
-            希望: {availCount}コマ　　指導中: {teachCount}コマ
-          </div>
+          <button onClick={onDone} style={{ background: 'none', color: 'var(--text-dim)', fontSize: 12, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>← 一覧に戻る</button>
+          <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.03em' }}>{instructor.name}</h1>
+          <div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>希望: {availCount}コマ　　指導中: {teachCount}コマ</div>
         </div>
-
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          {/* 凡例 */}
           <div style={{ display: 'flex', gap: 16, marginRight: 8 }}>
-            {Object.entries(MODE).filter(([k]) => k !== 'none').map(([k, v]) => (
-              <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-dim)' }}>
-                <div style={{
-                  width: 16, height: 16, borderRadius: 4,
-                  background: v.bg, border: `1px solid ${v.border}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 10, color: v.color, fontWeight: 700,
-                }}>{v.label}</div>
-                {k === 'available' ? 'シフト希望' : '指導中'}
+            {[['available','シフト希望'],['teaching','指導中']].map(([mode, label]) => (
+              <div key={mode} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-dim)' }}>
+                <div style={{ width: 14, height: 14, borderRadius: 3, background: MODE_STYLE[mode].bg, border: '1.5px solid ' + MODE_STYLE[mode].border }} />
+                {label}
               </div>
             ))}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-faint)' }}>
-              <div style={{
-                width: 16, height: 16, borderRadius: 4,
-                border: '1px solid var(--border)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 10, color: 'var(--text-faint)',
-              }}>―</div>
-              未登録
-            </div>
           </div>
-
-          <button
-            onClick={clearAll}
-            style={{
-              padding: '8px 14px', borderRadius: 'var(--radius-sm)',
-              background: 'transparent', color: 'var(--text-faint)',
-              border: '1px solid var(--border)', fontSize: 12,
-            }}
-          >
-            クリア
-          </button>
-
-          <button
-            onClick={handleSave}
-            style={{
-              padding: '8px 20px', borderRadius: 'var(--radius-sm)',
-              background: saved ? 'var(--success)' : 'var(--accent)',
-              color: '#fff', fontSize: 13, fontWeight: 600,
-              minWidth: 88,
-            }}
-          >
+          <button onClick={clearAll} style={{ padding: '8px 14px', borderRadius: 'var(--radius-sm)', background: 'transparent', color: 'var(--text-faint)', border: '1px solid var(--border)', fontSize: 12 }}>クリア</button>
+          <button onClick={handleSave} style={{ padding: '8px 20px', borderRadius: 'var(--radius-sm)', background: saved ? 'var(--success)' : 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, minWidth: 88 }}>
             {saved ? '✓ 保存済み' : '保存'}
           </button>
         </div>
       </div>
 
-      {/* 操作説明 */}
-      <div style={{
-        background: 'var(--bg-card)', border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-sm)', padding: '10px 16px', marginBottom: 20,
-        fontSize: 12, color: 'var(--text-dim)',
-      }}>
-        💡 セルをクリックするごとに　未登録 → <span style={{ color: 'var(--accent)' }}>シフト希望（○）</span> → <span style={{ color: 'var(--success)' }}>指導中（●）</span> → 未登録　と切り替わります
+      {/* 説明 */}
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '10px 16px', marginBottom: 20, fontSize: 12, color: 'var(--text-dim)' }}>
+        💡 <strong>ドラッグ</strong>で時間帯を選択 → 希望 / 指導中 を選択して登録。単セルクリックでトグル切り替え。
       </div>
 
       {/* グリッド */}
@@ -142,73 +139,32 @@ export default function EditView({ instructor, onUpdate, onDone }) {
         <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 700 }}>
           <thead>
             <tr>
-              <th style={{
-                width: 64, padding: '10px 8px', textAlign: 'right',
-                fontSize: 11, color: 'var(--text-faint)',
-                fontFamily: 'var(--font-mono)', fontWeight: 400,
-                borderBottom: '1px solid var(--border)',
-              }}>時刻</th>
+              <th style={{ width: 64, padding: '10px 8px', textAlign: 'right', fontSize: 11, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)', fontWeight: 400, borderBottom: '1px solid var(--border)' }}>時刻</th>
               {DAYS.map((day, i) => (
-                <th key={day} style={{
-                  padding: '10px 4px', textAlign: 'center',
-                  fontSize: 13, fontWeight: 600,
-                  color: i >= 5 ? 'var(--accent2)' : 'var(--text)',
-                  borderBottom: '1px solid var(--border)',
-                  minWidth: 80,
-                }}>
-                  {day}
-                </th>
+                <th key={day} style={{ padding: '10px 4px', textAlign: 'center', fontSize: 13, fontWeight: 600, color: i >= 5 ? 'var(--accent2)' : 'var(--text)', borderBottom: '1px solid var(--border)', minWidth: 80 }}>{day}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {TIME_SLOTS.map((time, tIdx) => {
+            {TIME_SLOTS.map((time, ti) => {
               const isHour = time.endsWith(':00');
               return (
                 <tr key={time}>
-                  <td style={{
-                    padding: '2px 8px 2px 0',
-                    textAlign: 'right',
-                    fontSize: 11,
-                    fontFamily: 'var(--font-mono)',
-                    color: isHour ? 'var(--text-dim)' : 'var(--text-faint)',
-                    fontWeight: isHour ? 500 : 400,
-                    borderTop: isHour ? '1px solid var(--border)' : 'none',
-                    whiteSpace: 'nowrap',
-                  }}>
+                  <td style={{ padding: '2px 8px 2px 0', textAlign: 'right', fontSize: 11, fontFamily: 'var(--font-mono)', color: isHour ? 'var(--text-dim)' : 'var(--text-faint)', fontWeight: isHour ? 500 : 400, borderTop: isHour ? '1px solid var(--border)' : 'none', whiteSpace: 'nowrap' }}>
                     {time}
                   </td>
-                  {DAY_KEYS.map((dayKey, dIdx) => {
+                  {DAY_KEYS.map((dayKey, di) => {
                     const mode = getSlotMode(available, teaching, dayKey, time);
-                    const m = MODE[mode];
+                    const inSel = isInRange(selecting, di, ti);
+                    const s = inSel ? MODE_STYLE.selecting : MODE_STYLE[mode];
                     return (
-                      <td
-                        key={dayKey}
-                        onClick={() => toggleSlot(dayKey, time)}
-                        style={{
-                          padding: '2px',
-                          borderTop: isHour ? '1px solid var(--border)' : 'none',
-                        }}
+                      <td key={dayKey} style={{ padding: '2px', borderTop: isHour ? '1px solid var(--border)' : 'none' }}
+                        onMouseDown={() => handleMouseDown(di, ti)}
+                        onMouseEnter={() => handleMouseEnter(di, ti)}
+                        onMouseUp={(e) => handleMouseUp(e, di, ti)}
                       >
-                        <div style={{
-                          height: 26,
-                          borderRadius: 4,
-                          background: m.bg,
-                          border: `1px solid ${mode !== 'none' ? m.border : 'transparent'}`,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 13, color: m.color, fontWeight: 700,
-                          cursor: 'pointer',
-                          transition: 'all 0.1s ease',
-                          userSelect: 'none',
-                        }}
-                          onMouseEnter={e => {
-                            if (mode === 'none') e.currentTarget.style.background = 'var(--bg-hover)';
-                          }}
-                          onMouseLeave={e => {
-                            if (mode === 'none') e.currentTarget.style.background = 'transparent';
-                          }}
-                        >
-                          {mode !== 'none' ? m.label : ''}
+                        <div style={{ height: 26, borderRadius: 4, background: s.bg, border: '1px solid ' + (inSel || mode !== 'none' ? s.border : 'transparent'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: s.color, fontWeight: 700, cursor: 'pointer' }}>
+                          {inSel ? '▪' : mode === 'available' ? '○' : mode === 'teaching' ? '●' : ''}
                         </div>
                       </td>
                     );
@@ -219,6 +175,35 @@ export default function EditView({ instructor, onUpdate, onDone }) {
           </tbody>
         </table>
       </div>
+
+      {/* ポップアップ */}
+      {popup && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 150 }} onMouseDown={cancelPopup} />
+          <div style={{
+            position: 'fixed',
+            left: Math.min(popup.x + 8, window.innerWidth - 224),
+            top: Math.min(popup.y + 8, window.innerHeight - 170),
+            zIndex: 200, background: 'var(--bg-card)', border: '1px solid var(--border-light)',
+            borderRadius: 'var(--radius)', padding: 12, boxShadow: 'var(--shadow)', minWidth: 208,
+          }} onMouseDown={e => e.stopPropagation()}>
+            <div style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 10, fontFamily: 'var(--font-mono)' }}>
+              {popup.keys.length}コマ選択中
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <button onClick={() => applyPopup('available')} style={{ padding: '10px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-dim)', color: 'var(--accent)', border: '1px solid rgba(91,141,238,0.4)', fontSize: 13, fontWeight: 600, textAlign: 'left', cursor: 'pointer' }}>
+                ○　シフト希望として登録
+              </button>
+              <button onClick={() => applyPopup('teaching')} style={{ padding: '10px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--success-dim)', color: 'var(--success)', border: '1px solid rgba(76,175,125,0.4)', fontSize: 13, fontWeight: 600, textAlign: 'left', cursor: 'pointer' }}>
+                ●　指導中として登録
+              </button>
+              <button onClick={() => applyPopup('none')} style={{ padding: '10px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-hover)', color: 'var(--text-dim)', border: '1px solid var(--border)', fontSize: 13, textAlign: 'left', cursor: 'pointer' }}>
+                ✕　登録を解除
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
