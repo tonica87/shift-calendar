@@ -14,23 +14,20 @@ export function generateSlots(startHour = 10, endHour = 22) {
 
 export const TIME_SLOTS = generateSlots();
 
-// スロットキー: "mon-10:00"
 export function slotKey(dayKey, time) {
   return `${dayKey}-${time}`;
 }
 
-// 新しい講師オブジェクト
 export function createInstructor(name) {
   return {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
     name,
-    available: {}, // { "mon-10:00": true, ... }
-    teaching: {},  // { "mon-10:00": true, ... }
+    available: {},
+    teaching: {},
     createdAt: new Date().toISOString(),
   };
 }
 
-// 色パレット（講師ごとに割り当て）
 const PALETTE = [
   '#5b8dee', '#e8734a', '#4caf7d', '#c97ae8', '#e8c34a',
   '#4acce8', '#e84a7a', '#7ae84a', '#e8934a', '#4a7ae8',
@@ -40,19 +37,26 @@ export function instructorColor(index) {
   return PALETTE[index % PALETTE.length];
 }
 
-// localStorage キー
-const STORAGE_KEY = 'shift_calendar_v1';
-
-export function loadData() {
+// API経由でデータ読み込み
+export async function loadData() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { instructors: [] };
-    return JSON.parse(raw);
+    const res = await fetch('/api/data');
+    if (!res.ok) return { instructors: [] };
+    return await res.json();
   } catch {
     return { instructors: [] };
   }
 }
 
-export function saveData(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+// API経由でデータ保存
+export async function saveData(data) {
+  try {
+    await fetch('/api/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  } catch (e) {
+    console.error('Save failed:', e);
+  }
 }
