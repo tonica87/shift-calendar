@@ -31,8 +31,8 @@ export default function App() {
     setSaving(false);
   }, []);
 
-  function addInstructor(name) {
-    const inst = createInstructor(name);
+  function addInstructor(name, subjects = []) {
+    const inst = { ...createInstructor(name), subjects };
     const newData = { ...data, instructors: [...data.instructors, inst] };
     setData(newData);
     save(newData);
@@ -115,8 +115,8 @@ export default function App() {
               )}
               {view === 'register' && (
                 <RegisterView
-                  onAdd={(name) => {
-                    const id = addInstructor(name);
+                  onAdd={(name, subjects) => {
+                    const id = addInstructor(name, subjects);
                     setEditingId(id);
                     setView('edit');
                   }}
