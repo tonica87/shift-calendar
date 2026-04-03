@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { DAYS, DAY_KEYS, TIME_SLOTS, slotKey } from '../lib/data.js';
+import { DAYS, DAY_KEYS, TIME_SLOTS, slotKey, slotsToTime } from '../lib/data.js';
 
 function getSlotMode(available, teaching, dayKey, time) {
   const k = slotKey(dayKey, time);
@@ -99,7 +99,7 @@ export default function EditView({ instructor, onUpdate, onDone }) {
         <div>
           <button onClick={onDone} style={{ background: 'none', color: 'var(--text-dim)', fontSize: 12, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>← 一覧に戻る</button>
           <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.03em' }}>{instructor.name}</h1>
-          <div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>希望: {availCount}コマ　　指導中: {teachCount}コマ</div>
+          <div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>希望: {slotsToTime(availCount)}　　指導中: {slotsToTime(teachCount)}</div>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: 16, marginRight: 8 }}>
@@ -176,7 +176,7 @@ export default function EditView({ instructor, onUpdate, onDone }) {
             borderRadius: 'var(--radius)', padding: 12, boxShadow: 'var(--shadow)', minWidth: 208,
           }} onMouseDown={e => e.stopPropagation()}>
             <div style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 10, fontFamily: 'var(--font-mono)' }}>
-              {popup.keys.length}コマ選択中
+              {slotsToTime(popup.keys.length)}選択中
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <button onClick={() => applyPopup('available')} style={{ padding: '10px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-dim)', color: 'var(--accent)', border: '1px solid rgba(91,141,238,0.4)', fontSize: 13, fontWeight: 600, textAlign: 'left', cursor: 'pointer' }}>
