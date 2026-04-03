@@ -44,7 +44,6 @@ export default function RegisterView({ onAdd, instructors, onEdit }) {
             type="text"
             value={name}
             onChange={e => { setName(e.target.value); setError(''); }}
-            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
             placeholder="例: 山田 太郎"
             style={{
               flex: 1,
