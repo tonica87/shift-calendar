@@ -18,10 +18,18 @@ export function slotKey(dayKey, time) {
   return `${dayKey}-${time}`;
 }
 
+
+// 担当科目リスト
+export const SUBJECTS = [
+  '英語', '国語', '文系数学', '理系数学',
+  '日本史', '世界史', '物理', '化学',
+  '政治経済', '地理', '生物', '地学',
+];
 export function createInstructor(name) {
   return {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
     name,
+    subjects: [],
     available: {},
     teaching: {},
     createdAt: new Date().toISOString(),
