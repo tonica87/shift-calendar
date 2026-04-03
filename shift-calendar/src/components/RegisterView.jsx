@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { instructorColor } from '../lib/data.js';
+import { instructorColor, slotsToTime } from '../lib/data.js';
 
 export default function RegisterView({ onAdd, instructors, onEdit }) {
   const [name, setName] = useState('');
@@ -107,7 +107,7 @@ export default function RegisterView({ onAdd, instructors, onEdit }) {
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, fontSize: 14 }}>{inst.name}</div>
                     <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2, fontFamily: 'var(--font-mono)' }}>
-                      希望: {availCount}コマ　指導中: {teachCount}コマ
+                      希望: {slotsToTime(availCount)}　指導中: {slotsToTime(teachCount)}
                     </div>
                   </div>
                   <button
