@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DAYS, DAY_KEYS, TIME_SLOTS, slotKey, instructorColor, slotsToTime } from '../lib/data.js';
+import { DAYS, DAY_KEYS, TIME_SLOTS, slotKey, slotsToTime } from '../lib/data.js';
 
 export default function CalendarView({ instructors, onEdit, onDelete }) {
   const [filter, setFilter] = useState('all'); // 'all' | 'available' | 'teaching'
@@ -26,7 +26,7 @@ export default function CalendarView({ instructors, onEdit, onDelete }) {
       const isTeaching = inst.teaching?.[k];
       const isAvailable = inst.available?.[k];
       if (filter === 'teaching' && !isTeaching) return null;
-      if (filter === 'available' && !isAvailable && !isTeaching) return null;
+      if (filter === 'available' && !isAvailable) return null;
       if (!isTeaching && !isAvailable) return null;
       return { inst, idx, isTeaching, isAvailable };
     }).filter(Boolean);
@@ -51,7 +51,7 @@ export default function CalendarView({ instructors, onEdit, onDelete }) {
         <div style={{ display: 'flex', gap: 6 }}>
           {[
             { key: 'all', label: 'すべて' },
-            { key: 'available', label: '希望あり' },
+            { key: 'available', label: 'シフト希望のみ' },
             { key: 'teaching', label: '指導中のみ' },
           ].map(f => (
             <button
@@ -171,17 +171,15 @@ export default function CalendarView({ instructors, onEdit, onDelete }) {
                           {people.map(({ inst, idx, isTeaching }) => (
                             <span
                               key={inst.id}
-                              title={`${inst.name} — ${isTeaching ? '指導中' : 'シフト希望'}`}
+                              title={`${inst.name} — ${isTeaching ? '指導中' : 'シフト希望'}${inst.subjects?.length ? '\n担当: ' + inst.subjects.join('・') : ''}`}
                               style={{
                                 padding: '2px 7px',
                                 borderRadius: 4,
                                 fontSize: 11,
                                 fontWeight: 500,
-                                background: isTeaching
-                                  ? `${instructorColor(idx)}22`
-                                  : `${instructorColor(idx)}14`,
-                                color: instructorColor(idx),
-                                border: `1px solid ${instructorColor(idx)}${isTeaching ? '66' : '33'}`,
+                                background: isTeaching ? 'var(--success-dim)' : 'var(--accent-dim)',
+                                color: isTeaching ? 'var(--success)' : 'var(--accent)',
+                                border: `1px solid ${isTeaching ? 'rgba(76,175,125,0.4)' : 'rgba(91,141,238,0.4)'}`,
                                 whiteSpace: 'nowrap',
                                 cursor: 'default',
                               }}
@@ -206,8 +204,7 @@ export default function CalendarView({ instructors, onEdit, onDelete }) {
           講師サマリー
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
-          {instructors.map((inst, idx) => {
-            const color = instructorColor(idx);
+          {instructors.map((inst) => {
             const availCount = Object.values(inst.available || {}).filter(Boolean).length;
             const teachCount = Object.values(inst.teaching || {}).filter(Boolean).length;
             return (
@@ -218,7 +215,6 @@ export default function CalendarView({ instructors, onEdit, onDelete }) {
                   border: '1px solid var(--border)',
                   borderRadius: 'var(--radius-sm)',
                   padding: '12px 14px',
-                  borderLeft: `3px solid ${color}`,
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -242,10 +238,17 @@ export default function CalendarView({ instructors, onEdit, onDelete }) {
                     >✕</button>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 12, fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}>
+                <div style={{ display: 'flex', gap: 12, fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-dim)', marginBottom: inst.subjects?.length ? 6 : 0 }}>
                   <span style={{ color: 'var(--accent)' }}>○ {slotsToTime(availCount)}</span>
                   <span style={{ color: 'var(--success)' }}>● {slotsToTime(teachCount)}</span>
                 </div>
+                {inst.subjects?.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {inst.subjects.map(s => (
+                      <span key={s} style={{ fontSize: 10, padding: '1px 6px', borderRadius: 10, background: 'var(--bg-hover)', color: 'var(--text-dim)', border: '1px solid var(--border)' }}>{s}</span>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })}
