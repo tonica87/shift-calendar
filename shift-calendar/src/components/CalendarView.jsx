@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DAYS, DAY_KEYS, TIME_SLOTS, slotKey, instructorColor } from '../lib/data.js';
+import { DAYS, DAY_KEYS, TIME_SLOTS, slotKey, instructorColor, slotsToTime } from '../lib/data.js';
 
 export default function CalendarView({ instructors, onEdit, onDelete }) {
   const [filter, setFilter] = useState('all'); // 'all' | 'available' | 'teaching'
@@ -243,8 +243,8 @@ export default function CalendarView({ instructors, onEdit, onDelete }) {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 12, fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}>
-                  <span style={{ color: 'var(--accent)' }}>○ {availCount}コマ</span>
-                  <span style={{ color: 'var(--success)' }}>● {teachCount}コマ</span>
+                  <span style={{ color: 'var(--accent)' }}>○ {slotsToTime(availCount)}</span>
+                  <span style={{ color: 'var(--success)' }}>● {slotsToTime(teachCount)}</span>
                 </div>
               </div>
             );
