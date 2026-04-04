@@ -111,7 +111,7 @@ export default function App() {
           ) : (
             <>
               {view === 'calendar' && (
-                <CalendarView instructors={data.instructors} onEdit={startEdit} onDelete={deleteInstructor} />
+                <CalendarView instructors={data.instructors} onEdit={startEdit} />
               )}
               {view === 'register' && (
                 <RegisterView
@@ -128,6 +128,7 @@ export default function App() {
                 <EditView
                   instructor={editingInstructor}
                   onUpdate={(patch) => updateInstructor(editingId, patch)}
+                  onDelete={deleteInstructor}
                   onDone={() => setView('calendar')}
                 />
               )}
