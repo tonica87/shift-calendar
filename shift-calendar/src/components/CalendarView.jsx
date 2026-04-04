@@ -74,13 +74,13 @@ export default function CalendarView({ instructors, onEdit }) {
       {/* メイングリッド */}
       <div style={{ overflowX: 'auto' }}>
         <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: selectedDay !== null ? 300 : 700 }}>
-          <thead>
+          <thead style={{ position: 'sticky', top: 56, zIndex: 10 }}>
             <tr>
-              <th style={{ width: 64, padding: '10px 8px', textAlign: 'right', fontSize: 11, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)', fontWeight: 400, borderBottom: '1px solid var(--border)', position: 'sticky', left: 0, background: 'var(--bg)' }}>時刻</th>
+              <th style={{ width: 64, padding: '10px 8px', textAlign: 'right', fontSize: 11, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)', fontWeight: 400, borderBottom: '1px solid var(--border)', position: 'sticky', left: 0, background: 'var(--bg)', zIndex: 11 }}>時刻</th>
               {visibleDays.map(({ day }, i) => {
                 const originalIdx = selectedDay !== null ? selectedDay : i;
                 return (
-                  <th key={day} style={{ padding: '10px 8px', textAlign: 'center', fontSize: 13, fontWeight: 700, color: originalIdx >= 5 ? 'var(--accent2)' : 'var(--text)', borderBottom: '1px solid var(--border)', borderLeft: '1px solid var(--border)', minWidth: selectedDay !== null ? 'auto' : 120 }}>
+                  <th key={day} style={{ padding: '10px 8px', textAlign: 'center', fontSize: 13, fontWeight: 700, color: originalIdx >= 5 ? 'var(--accent2)' : 'var(--text)', borderBottom: '1px solid var(--border)', borderLeft: '1px solid var(--border)', minWidth: selectedDay !== null ? 'auto' : 120, background: 'var(--bg)' }}>
                     {day}曜日
                   </th>
                 );
