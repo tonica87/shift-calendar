@@ -6,6 +6,7 @@ const SELECTING_STYLE = { bg: 'rgba(255,200,50,0.18)', color: '#e8c34a', border:
 export default function EditView({ instructor, onUpdate, onDone, onDelete }) {
   const [slots,    setSlots]    = useState(() => ({ ...(instructor.slots || {}) }));
   const [subjects, setSubjects] = useState(() => instructor.subjects || []);
+  const [comment,  setComment]  = useState(() => instructor.comment || '');
   const [saved,    setSaved]    = useState(false);
   const [selecting, setSelecting] = useState(null);
   const [popup,    setPopup]    = useState(null);
@@ -75,7 +76,7 @@ export default function EditView({ instructor, onUpdate, onDone, onDelete }) {
   function cancelPopup() { setPopup(null); setSelecting(null); }
 
   function handleSave() {
-    onUpdate({ slots, subjects });
+    onUpdate({ slots, subjects, comment });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
@@ -143,6 +144,28 @@ export default function EditView({ instructor, onUpdate, onDone, onDelete }) {
           })}
         </div>
         {subjects.length === 0 && <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 8 }}>科目をクリックして選択してください</div>}
+      </div>
+
+      {/* 一言コメント */}
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '14px 16px', marginBottom: 16 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', marginBottom: 6 }}>一言コメント</div>
+        <div style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 10 }}>追記事項があればここに書いてください（いまたくさん特訓を持ちたいとか週何人までとか苦手科目など自由に）</div>
+        <textarea
+          value={comment}
+          onChange={e => { setComment(e.target.value); setSaved(false); }}
+          placeholder="例：希望を出しているコマであと3人くらい持ちたい、代講は書いたところ以外もいけるかもなので相談してください"
+          rows={3}
+          style={{
+            width: '100%', boxSizing: 'border-box',
+            padding: '10px 12px',
+            background: 'var(--bg)', color: 'var(--text)',
+            border: '1px solid var(--border-light)',
+            borderRadius: 'var(--radius-sm)',
+            fontSize: 13, lineHeight: 1.6,
+            resize: 'vertical',
+            fontFamily: 'var(--font-sans)',
+          }}
+        />
       </div>
 
       {/* 操作説明 */}
