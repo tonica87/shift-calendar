@@ -18,6 +18,17 @@ export function slotKey(dayKey, time) {
   return `${dayKey}-${time}`;
 }
 
+// シフトモード定義
+// tokkun : 特訓あり      ★ 緑
+// weekly : 毎週シフト希望  ◎ 青
+// spot   : 単発代講可能   △ オレンジ
+export const SLOT_MODES = ['tokkun', 'weekly', 'spot'];
+
+export const MODE_META = {
+  tokkun: { label: '特訓あり',      symbol: '★', color: 'var(--success)',  dim: 'var(--success-dim)',  border: 'rgba(76,175,125,0.4)' },
+  weekly: { label: '毎週シフト希望', symbol: '◎', color: 'var(--accent)',   dim: 'var(--accent-dim)',   border: 'rgba(91,141,238,0.4)' },
+  spot:   { label: '単発代講可能',   symbol: '△', color: 'var(--accent2)',  dim: 'var(--accent2-dim)',  border: 'rgba(232,115,74,0.4)' },
+};
 
 // 担当科目リスト
 export const SUBJECTS = [
@@ -25,24 +36,15 @@ export const SUBJECTS = [
   '日本史', '世界史', '物理', '化学',
   '政治経済', '地理', '生物', '地学',
 ];
-export function createInstructor(name) {
+
+export function createInstructor(name, subjects = []) {
   return {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
     name,
-    subjects: [],
-    available: {},
-    teaching: {},
+    subjects,
+    slots: {},
     createdAt: new Date().toISOString(),
   };
-}
-
-const PALETTE = [
-  '#5b8dee', '#e8734a', '#4caf7d', '#c97ae8', '#e8c34a',
-  '#4acce8', '#e84a7a', '#7ae84a', '#e8934a', '#4a7ae8',
-];
-
-export function instructorColor(index) {
-  return PALETTE[index % PALETTE.length];
 }
 
 // API経由でデータ読み込み
