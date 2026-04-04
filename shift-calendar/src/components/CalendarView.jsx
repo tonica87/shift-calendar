@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { DAYS, DAY_KEYS, TIME_SLOTS, slotKey, slotsToTime } from '../lib/data.js';
 
-export default function CalendarView({ instructors, onEdit, onDelete }) {
+export default function CalendarView({ instructors, onEdit }) {
   const [filter, setFilter] = useState('all'); // 'all' | 'available' | 'teaching'
   const [selectedDay, setSelectedDay] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null);
 
   if (instructors.length === 0) {
     return (
@@ -228,14 +227,7 @@ export default function CalendarView({ instructors, onEdit, onDelete }) {
                         border: '1px solid var(--border-light)',
                       }}
                     >編集</button>
-                    <button
-                      onClick={() => setConfirmDelete(inst.id)}
-                      style={{
-                        padding: '3px 8px', borderRadius: 4, fontSize: 11,
-                        background: 'transparent', color: 'var(--text-faint)',
-                        border: '1px solid transparent',
-                      }}
-                    >✕</button>
+
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 12, fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-dim)', marginBottom: inst.subjects?.length ? 6 : 0 }}>
@@ -255,48 +247,6 @@ export default function CalendarView({ instructors, onEdit, onDelete }) {
         </div>
       </div>
 
-      {/* 削除確認モーダル */}
-      {confirmDelete && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            zIndex: 200,
-          }}
-          onClick={() => setConfirmDelete(null)}
-        >
-          <div
-            style={{
-              background: 'var(--bg-card)', border: '1px solid var(--border)',
-              borderRadius: 'var(--radius)', padding: 28, maxWidth: 360, width: '90%',
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>講師を削除しますか？</h3>
-            <p style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 24 }}>
-              「{instructors.find(i => i.id === confirmDelete)?.name}」のデータがすべて削除されます。この操作は取り消せません。
-            </p>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setConfirmDelete(null)}
-                style={{
-                  padding: '8px 18px', borderRadius: 'var(--radius-sm)',
-                  background: 'var(--bg-hover)', color: 'var(--text-dim)',
-                  border: '1px solid var(--border-light)', fontSize: 13,
-                }}
-              >キャンセル</button>
-              <button
-                onClick={() => { onDelete(confirmDelete); setConfirmDelete(null); }}
-                style={{
-                  padding: '8px 18px', borderRadius: 'var(--radius-sm)',
-                  background: '#e84a7a22', color: '#e84a7a',
-                  border: '1px solid rgba(232,74,122,0.4)', fontSize: 13, fontWeight: 600,
-                }}
-              >削除する</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
