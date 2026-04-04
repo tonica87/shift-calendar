@@ -59,3 +59,23 @@ input, select {
   background: var(--border-light);
   border-radius: 3px;
 }
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f5f6fa;
+    --bg-card: #ffffff;
+    --bg-hover: #eef0f7;
+    --border: #dde0ec;
+    --border-light: #c8cce0;
+    --accent: #4070d8;
+    --accent-dim: rgba(64, 112, 216, 0.12);
+    --accent2: #d05a2a;
+    --accent2-dim: rgba(208, 90, 42, 0.12);
+    --text: #1a1d2e;
+    --text-dim: #5a5f7a;
+    --text-faint: #9aa0bc;
+    --success: #2e8f5e;
+    --success-dim: rgba(46, 143, 94, 0.12);
+    --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  }
+}
