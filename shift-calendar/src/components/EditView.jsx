@@ -15,13 +15,14 @@ const MODE_STYLE = {
   selecting: { bg: 'rgba(255,200,50,0.18)', color: '#e8c34a',           border: 'rgba(232,195,74,0.5)' },
 };
 
-export default function EditView({ instructor, onUpdate, onDone }) {
+export default function EditView({ instructor, onUpdate, onDone, onDelete }) {
   const [available, setAvailable] = useState(() => ({ ...(instructor.available || {}) }));
   const [teaching,  setTeaching]  = useState(() => ({ ...(instructor.teaching  || {}) }));
   const [subjects,  setSubjects]  = useState(() => instructor.subjects || []);
   const [saved, setSaved] = useState(false);
   const [selecting, setSelecting] = useState(null);
   const [popup, setPopup] = useState(null);
+  const [clearPopup, setClearPopup] = useState(false);
 
   const dragging  = useRef(false);
   const dragStart = useRef(null);
@@ -87,10 +88,17 @@ export default function EditView({ instructor, onUpdate, onDone }) {
     setTimeout(() => setSaved(false), 2000);
   }
 
-  function clearAll() {
+  function clearAllShifts() {
     const empty = {};
     TIME_SLOTS.forEach(t => DAY_KEYS.forEach(d => { empty[slotKey(d, t)] = false; }));
     setAvailable({...empty}); setTeaching({...empty}); setSaved(false);
+    setClearPopup(false);
+  }
+
+  function handleDeleteInstructor() {
+    setClearPopup(false);
+    onDelete(instructor.id);
+    onDone();
   }
 
   const availCount = Object.values(available).filter(Boolean).length;
@@ -116,7 +124,7 @@ export default function EditView({ instructor, onUpdate, onDone }) {
               </div>
             ))}
           </div>
-          <button onClick={clearAll} style={{ padding: '8px 14px', borderRadius: 'var(--radius-sm)', background: 'transparent', color: 'var(--text-faint)', border: '1px solid var(--border)', fontSize: 12 }}>クリア</button>
+          <button onClick={() => setClearPopup(true)} style={{ padding: '8px 14px', borderRadius: 'var(--radius-sm)', background: 'transparent', color: 'var(--text-faint)', border: '1px solid var(--border)', fontSize: 12 }}>クリア</button>
           <button onClick={handleSave} style={{ padding: '8px 20px', borderRadius: 'var(--radius-sm)', background: saved ? 'var(--success)' : 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, minWidth: 88 }}>
             {saved ? '✓ 保存済み' : '保存'}
           </button>
@@ -233,6 +241,59 @@ export default function EditView({ instructor, onUpdate, onDone }) {
             </div>
           </div>
         </>
+      )}
+
+      {/* クリア確認ポップアップ */}
+      {clearPopup && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 200,
+          }}
+          onClick={() => setClearPopup(false)}
+        >
+          <div
+            style={{
+              background: 'var(--bg-card)', border: '1px solid var(--border)',
+              borderRadius: 'var(--radius)', padding: 28, maxWidth: 360, width: '90%',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>どちらを実行しますか？</h3>
+            <p style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 24 }}>
+              {instructor.name} のシフト情報を操作します
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                onClick={clearAllShifts}
+                style={{
+                  padding: '11px 18px', borderRadius: 'var(--radius-sm)',
+                  background: 'var(--bg-hover)', color: 'var(--text)',
+                  border: '1px solid var(--border-light)', fontSize: 13,
+                  fontWeight: 500, textAlign: 'left',
+                }}
+              >🗓 入力済みのシフトをすべて消去</button>
+              <button
+                onClick={handleDeleteInstructor}
+                style={{
+                  padding: '11px 18px', borderRadius: 'var(--radius-sm)',
+                  background: '#e84a7a22', color: '#e84a7a',
+                  border: '1px solid rgba(232,74,122,0.4)', fontSize: 13,
+                  fontWeight: 500, textAlign: 'left',
+                }}
+              >🗑 講師を削除する</button>
+              <button
+                onClick={() => setClearPopup(false)}
+                style={{
+                  padding: '11px 18px', borderRadius: 'var(--radius-sm)',
+                  background: 'transparent', color: 'var(--text-faint)',
+                  border: '1px solid transparent', fontSize: 13,
+                }}
+              >キャンセル</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
