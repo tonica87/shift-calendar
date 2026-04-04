@@ -150,7 +150,7 @@ export default function CalendarView({ instructors, onEdit }) {
                   </div>
                 )}
                 {inst.comment && (
-                  <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-dim)', lineHeight: 1.6, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
+                  <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-dim)', lineHeight: 1.6, borderTop: '1px solid var(--border)', paddingTop: 8, whiteSpace: 'pre-wrap' }}>
                     {inst.comment}
                   </div>
                 )}
