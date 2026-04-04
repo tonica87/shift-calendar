@@ -68,7 +68,7 @@ export default function App() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <header style={{
-        background: 'linear-gradient(135deg, #1a1d27 0%, #0f1117 100%)',
+        background: 'var(--bg-card)',
         borderBottom: '1px solid var(--border)',
         padding: '0 24px',
         position: 'sticky', top: 0, zIndex: 100,
@@ -77,7 +77,7 @@ export default function App() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 32, height: 32, background: 'var(--accent)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>📚</div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 15, letterSpacing: '-0.02em' }}>シフトカレンダー</div>
+              <div style={{ fontWeight: 700, fontSize: 15, letterSpacing: '-0.02em', color: 'var(--text)' }}>シフトカレンダー</div>
               <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: -2 }}>武田塾新宿校</div>
             </div>
           </div>
