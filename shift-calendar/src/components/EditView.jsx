@@ -153,7 +153,7 @@ export default function EditView({ instructor, onUpdate, onDone, onDelete }) {
         <textarea
           value={comment}
           onChange={e => { setComment(e.target.value); setSaved(false); }}
-          placeholder="例：希望を出しているコマであと3人くらい持ちたい、代講は書いたところ以外もいけるかもなので相談してください"
+          placeholder="例：今期は週3人まで希望、数学IA・IIBは対応可だがIIICは不可"
           rows={3}
           style={{
             width: '100%', boxSizing: 'border-box',
@@ -176,11 +176,11 @@ export default function EditView({ instructor, onUpdate, onDone, onDelete }) {
       {/* グリッド */}
       <div style={{ overflowX: 'auto' }}>
         <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 700 }}>
-          <thead>
+          <thead style={{ position: 'sticky', top: 108, zIndex: 10 }}>
             <tr>
-              <th style={{ width: 64, padding: '10px 8px', textAlign: 'right', fontSize: 11, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)', fontWeight: 400, borderBottom: '1px solid var(--border)' }}>時刻</th>
+              <th style={{ width: 64, padding: '10px 8px', textAlign: 'right', fontSize: 11, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)', fontWeight: 400, borderBottom: '1px solid var(--border)', background: 'var(--bg)' }}>時刻</th>
               {DAYS.map((day, i) => (
-                <th key={day} style={{ padding: '10px 4px', textAlign: 'center', fontSize: 13, fontWeight: 600, color: i >= 5 ? 'var(--accent2)' : 'var(--text)', borderBottom: '1px solid var(--border)', borderLeft: '1px solid var(--border)', minWidth: 80 }}>{day}</th>
+                <th key={day} style={{ padding: '10px 4px', textAlign: 'center', fontSize: 13, fontWeight: 600, color: i >= 5 ? 'var(--accent2)' : 'var(--text)', borderBottom: '1px solid var(--border)', borderLeft: '1px solid var(--border)', minWidth: 80, background: 'var(--bg)' }}>{day}</th>
               ))}
             </tr>
           </thead>
