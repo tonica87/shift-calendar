@@ -157,7 +157,7 @@ export default function EditView({ instructor, onUpdate, onDone, onDelete }) {
             <tr>
               <th style={{ width: 64, padding: '10px 8px', textAlign: 'right', fontSize: 11, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)', fontWeight: 400, borderBottom: '1px solid var(--border)' }}>時刻</th>
               {DAYS.map((day, i) => (
-                <th key={day} style={{ padding: '10px 4px', textAlign: 'center', fontSize: 13, fontWeight: 600, color: i >= 5 ? 'var(--accent2)' : 'var(--text)', borderBottom: '1px solid var(--border)', minWidth: 80 }}>{day}</th>
+                <th key={day} style={{ padding: '10px 4px', textAlign: 'center', fontSize: 13, fontWeight: 600, color: i >= 5 ? 'var(--accent2)' : 'var(--text)', borderBottom: '1px solid var(--border)', borderLeft: '1px solid var(--border)', minWidth: 80 }}>{day}</th>
               ))}
             </tr>
           </thead>
@@ -178,7 +178,7 @@ export default function EditView({ instructor, onUpdate, onDone, onDelete }) {
                     const cellClr  = inSel ? SELECTING_STYLE.color   : meta ? meta.color  : 'transparent';
                     const symbol   = inSel ? '▪' : meta ? meta.symbol : '';
                     return (
-                      <td key={dayKey} style={{ padding: '2px', borderTop: isHour ? '1px solid var(--border)' : 'none' }}
+                      <td key={dayKey} style={{ padding: '2px', borderTop: isHour ? '1px solid var(--border)' : 'none', borderLeft: '1px solid var(--border)' }}
                         onMouseDown={() => handleMouseDown(di, ti)}
                         onMouseEnter={() => handleMouseEnter(di, ti)}
                         onMouseUp={(e) => handleMouseUp(e, di, ti)}
