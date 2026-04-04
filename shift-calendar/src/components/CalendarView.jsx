@@ -130,6 +130,7 @@ export default function CalendarView({ instructors, onEdit }) {
                     fontSize: 13, fontWeight: 700,
                     color: originalIdx >= 5 ? 'var(--accent2)' : 'var(--text)',
                     borderBottom: '1px solid var(--border)',
+                    borderLeft: '1px solid var(--border)',
                     minWidth: selectedDay !== null ? 'auto' : 120,
                   }}>
                     {day}曜日
@@ -164,6 +165,7 @@ export default function CalendarView({ instructors, onEdit }) {
                       <td key={dayKey} style={{
                         padding: '2px 4px',
                         borderTop: isHour ? '1px solid var(--border)' : 'none',
+                        borderLeft: '1px solid var(--border)',
                         verticalAlign: 'top',
                       }}>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, minHeight: 26 }}>
