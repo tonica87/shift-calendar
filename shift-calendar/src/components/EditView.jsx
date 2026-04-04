@@ -174,7 +174,7 @@ export default function EditView({ instructor, onUpdate, onDone, onDelete }) {
       </div>
 
       {/* グリッド */}
-      <div style={{ overflowX: 'auto' }}>
+      <div style={{ overflowX: 'auto', overflowY: 'visible' }}>
         <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 700 }}>
           <thead style={{ position: 'sticky', top: 108, zIndex: 10 }}>
             <tr>
