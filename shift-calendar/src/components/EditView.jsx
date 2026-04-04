@@ -174,13 +174,13 @@ export default function EditView({ instructor, onUpdate, onDone, onDelete }) {
       </div>
 
       {/* グリッド */}
-      <div style={{ overflowX: 'auto', overflowY: 'visible' }}>
+      <div style={{ overflowX: 'auto' }}>
         <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 700 }}>
-          <thead style={{ position: 'sticky', top: 108, zIndex: 10 }}>
+          <thead>
             <tr>
-              <th style={{ width: 64, padding: '10px 8px', textAlign: 'right', fontSize: 11, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)', fontWeight: 400, borderBottom: '1px solid var(--border)', background: 'var(--bg)' }}>時刻</th>
+              <th style={{ width: 64, padding: '10px 8px', textAlign: 'right', fontSize: 11, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)', fontWeight: 400, borderBottom: '1px solid var(--border)', background: 'var(--bg)', position: 'sticky', top: 0 }}>時刻</th>
               {DAYS.map((day, i) => (
-                <th key={day} style={{ padding: '10px 4px', textAlign: 'center', fontSize: 13, fontWeight: 600, color: i >= 5 ? 'var(--accent2)' : 'var(--text)', borderBottom: '1px solid var(--border)', borderLeft: '1px solid var(--border)', minWidth: 80, background: 'var(--bg)' }}>{day}</th>
+                <th key={day} style={{ padding: '10px 4px', textAlign: 'center', fontSize: 13, fontWeight: 600, color: i >= 5 ? 'var(--accent2)' : 'var(--text)', borderBottom: '1px solid var(--border)', borderLeft: '1px solid var(--border)', minWidth: 80, background: 'var(--bg)', position: 'sticky', top: 0 }}>{day}</th>
               ))}
             </tr>
           </thead>
