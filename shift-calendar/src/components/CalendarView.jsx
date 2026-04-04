@@ -72,7 +72,7 @@ export default function CalendarView({ instructors, onEdit }) {
       </div>
 
       {/* メイングリッド */}
-      <div style={{ overflowX: 'auto' }}>
+      <div style={{ overflowX: 'auto', overflowY: 'visible' }}>
         <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: selectedDay !== null ? 300 : 700 }}>
           <thead style={{ position: 'sticky', top: 56, zIndex: 10 }}>
             <tr>
